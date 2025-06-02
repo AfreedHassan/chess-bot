@@ -2,14 +2,18 @@ cmake_minimum_required(VERSION 3.23)
 project(ChessGame)
 
 # NOTE: Folders here contain both SDL2 and SDL2_image files.
-set(SDL2_LIB_DIR C:/Users/LENOVO/projects/cpp/SDL2-MinGw/SDL2-2.30.8/x86_64-w64-mingw32/lib)
-set(SDL2_INCLUDE_DIR C:/Users/LENOVO/projects/cpp/SDL2-MinGw/SDL2-2.30.8/x86_64-w64-mingw32/include)
-set(SDL2_LIBRARY C:/Users/LENOVO/projects/cpp/SDL2-MinGw/SDL2-2.30.8/x86_64-w64-mingw32/bin)
+if (WIN32)
+  set(SDL2_LIB_DIR C:/Users/LENOVO/projects/cpp/SDL2-MinGw/SDL2-2.30.8/x86_64-w64-mingw32/lib)
+  set(SDL2_INCLUDE_DIR C:/Users/LENOVO/projects/cpp/SDL2-MinGw/SDL2-2.30.8/x86_64-w64-mingw32/include)
+  set(SDL2_LIBRARY C:/Users/LENOVO/projects/cpp/SDL2-MinGw/SDL2-2.30.8/x86_64-w64-mingw32/bin)
+  set(SDL2IMAGE_LIB_DIR C:/Users/LENOVO/projects/cpp/SDL2-MinGw/SDL2_image-2.6.2/x86_64-w64-mingw32/lib)
+  set(SDL2IMAGE_INCLUDE_DIR C:/Users/LENOVO/projects/cpp/SDL2-MinGw/SDL2_image-2.6.2/x86_64-w64-mingw32/include)
+  set(SDL2IMAGE_LIBRARY C:/Users/LENOVO/projects/cpp/SDL2-MinGw/SDL2_image-2.6.2/x86_64-w64-mingw32/bin)
+elseif(UNIX)
+  find_package(SDL2 REQUIRED)
+  find_package(SDL2_image REQUIRED)
+endif()
 
-
-set(SDL2IMAGE_LIB_DIR C:/Users/LENOVO/projects/cpp/SDL2-MinGw/SDL2_image-2.6.2/x86_64-w64-mingw32/lib)
-set(SDL2IMAGE_INCLUDE_DIR C:/Users/LENOVO/projects/cpp/SDL2-MinGw/SDL2_image-2.6.2/x86_64-w64-mingw32/include)
-set(SDL2IMAGE_LIBRARY C:/Users/LENOVO/projects/cpp/SDL2-MinGw/SDL2_image-2.6.2/x86_64-w64-mingw32/bin)
 
 # SETUP INCLUDE AND LINK DIRS:
 include_directories(
@@ -34,7 +38,13 @@ message(STATUS "")
 add_executable(${PROJECT_NAME} ${SRC})
 
 # LINK PROGRAM
-target_link_libraries( ${PROJECT_NAME} mingw32 SDL2main SDL2 SDL2_image)
+# target_link_libraries( ${PROJECT_NAME} mingw32 SDL2main SDL2 SDL2_image)
+
+if (WIN32)
+    target_link_libraries(${PROJECT_NAME} mingw32 SDL2main SDL2 SDL2_image)
+else()
+  target_link_libraries(${PROJECT_NAME} SDL2main SDL2 SDL2_image)
+endif()
 
 # #FIND SDL2 Package
 # find_package(SDL2 REQUIRED)

@@ -5,8 +5,10 @@
 #include <SDL2/SDL_surface.h>
 #include <SDL2/SDL_video.h>
 #include <cstddef>
+#include <filesystem>
 #include <iostream>
-#include <process.h>
+#include <map>
+/*#include <process.h>*/
 
 struct RGB_COLOR_ {
   uint8_t r;
@@ -18,12 +20,21 @@ void drawBoardFromImage(SDL_Renderer *renderer);
 
 void drawBoard(SDL_Renderer *renderer);
 
+void drawPieces(SDL_Renderer *renderer);
+
+void drawPieceAtSquare(SDL_Renderer *renderer, std::string &&piece, char file,
+                       uint8_t rank);
+
+// Board constants
+const int ROWS = 8, COLS = 8, SQUARELENGTH = 80, SPACING = 0;
+
 // Screen dimension constants
 // const int SCREEN_WIDTH = 640;
 // const int SCREEN_HEIGHT = 480;
 const int SCREEN_WIDTH = 660;
 const int SCREEN_HEIGHT = 660;
-int main(int argc, char *args[]) {
+
+void Game() {
   SDL_Window *window = NULL;
   SDL_Surface *screenSurface = NULL;
 
@@ -48,16 +59,20 @@ int main(int argc, char *args[]) {
         std::cout << "SDL2_Image format not available" << std::endl;
       }
       drawBoard(renderer);
+      drawPieces(renderer);
+      SDL_RenderPresent(renderer);
 
       // SDL_FillRect( screenSurface, NULL, SDL_MapRGB(screenSurface->format,
       // 0xFF, 0x0, 0xFF)); SDL_UpdateWindowSurface(window);
-      SDL_Delay(3 * 1000);
+      SDL_Delay(5 * 1000);
 
       // quit
       SDL_Quit();
     }
   }
-
+}
+int main(int argc, char *args[]) {
+  Game();
   return 0;
 }
 void drawBoardFromImage(SDL_Renderer *renderer) {
@@ -78,15 +93,13 @@ void drawBoard(SDL_Renderer *renderer) {
   struct RGB_COLOR_ LIGHT_SQUARE = {241, 217, 181};
   struct RGB_COLOR_ DARK_SQUARE = {181, 136, 99};
 
-  int rows = 8, cols = 8, squareLength = 80, spacing = 0;
-
-  for (int row = 0; row < rows; row++) {
-    for (int col = 0; col < cols; col++) {
+  for (int row = 0; row < ROWS; row++) {
+    for (int col = 0; col < COLS; col++) {
       SDL_Rect rect;
-      rect.x = 10 + col * (squareLength + spacing);
-      rect.y = 10 + row * (squareLength + spacing);
-      rect.w = squareLength;
-      rect.h = squareLength;
+      rect.x = 10 + col * (SQUARELENGTH + SPACING);
+      rect.y = 10 + row * (SQUARELENGTH + SPACING);
+      rect.w = SQUARELENGTH;
+      rect.h = SQUARELENGTH;
 
       if ((row + col) & 1) {
         SDL_SetRenderDrawColor(renderer, LIGHT_SQUARE.r, LIGHT_SQUARE.g,
@@ -98,5 +111,80 @@ void drawBoard(SDL_Renderer *renderer) {
       SDL_RenderFillRect(renderer, &rect);
     }
   }
-  SDL_RenderPresent(renderer);
+  /*SDL_RenderPresent(renderer);*/
+}
+
+void drawPieces(SDL_Renderer *renderer) {
+  std::string path = "assets/pieces";
+  std::map<std::string, std::string> piecePaths;
+
+  for (auto &entry : std::filesystem::directory_iterator(path)) {
+    if (entry.path().extension() == ".png") {
+      piecePaths[entry.path().filename()] = entry.path();
+    }
+  }
+  drawPieceAtSquare(renderer, "bR", 'a', 8);
+  drawPieceAtSquare(renderer, "bN", 'b', 8);
+  drawPieceAtSquare(renderer, "bB", 'c', 8);
+  drawPieceAtSquare(renderer, "bQ", 'd', 8);
+  drawPieceAtSquare(renderer, "bK", 'e', 8);
+  drawPieceAtSquare(renderer, "bB", 'f', 8);
+  drawPieceAtSquare(renderer, "bN", 'g', 8);
+  drawPieceAtSquare(renderer, "bR", 'h', 8);
+  for (char c = 'a'; c <= 'h'; ++c) {
+    drawPieceAtSquare(renderer, "bP", c, 7);
+  }
+  drawPieceAtSquare(renderer, "wR", 'a', 1);
+  drawPieceAtSquare(renderer, "wN", 'b', 1);
+  drawPieceAtSquare(renderer, "wB", 'c', 1);
+  drawPieceAtSquare(renderer, "wQ", 'd', 1);
+  drawPieceAtSquare(renderer, "wK", 'e', 1);
+  drawPieceAtSquare(renderer, "wB", 'f', 1);
+  drawPieceAtSquare(renderer, "wN", 'g', 1);
+  drawPieceAtSquare(renderer, "wR", 'h', 1);
+  for (char c = 'a'; c <= 'h'; ++c) {
+    drawPieceAtSquare(renderer, "wP", c, 2);
+  }
+  /*for (int row = 0; row < ROWS; row++) {*/
+  /*  for (int col = 0; col < COLS; col++) {*/
+  /*    SDL_Rect rect;*/
+  /*    rect.x = 10 + col * (SQUARELENGTH + SPACING);*/
+  /*    rect.y = 10 + row * (SQUARELENGTH + SPACING);*/
+  /*    rect.w = SQUARELENGTH;*/
+  /*    rect.h = SQUARELENGTH;*/
+  /*    SDL_Surface *surface = IMG_Load("assets/pieces/rl.png");*/
+  /*    SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer,
+   * surface);*/
+  /*    SDL_FreeSurface(surface);*/
+  /**/
+  /*    SDL_RenderCopy(renderer, texture, NULL, &rect);*/
+  /*  }*/
+  /*}*/
+  /*SDL_RenderPresent(renderer);*/
+}
+
+void drawPieceAtSquare(SDL_Renderer *renderer, std::string &&piece, char file,
+                       uint8_t rank) {
+  // a8 is top left (closest to origin)
+  /* a8 - - - - - - - - - h8
+   * |                    |
+   * |                    |
+   * |                    |
+   * |                    |
+   * |                    |
+   * |                    |
+   * a1  - - - - - - - -  h1
+   */
+  uint8_t col = (file - 'a'), row = 8 - rank;
+  std::string imgPath = "assets/pieces/" + piece + ".svg";
+  SDL_Surface *surface = IMG_LoadSVG_RW(SDL_RWFromFile(imgPath.c_str(), "rb"));
+  SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, surface);
+  SDL_FreeSurface(surface);
+
+  SDL_Rect rect;
+  rect.x = 10 + col * (SQUARELENGTH + SPACING);
+  rect.y = 10 + row * (SQUARELENGTH + SPACING);
+  rect.h = SQUARELENGTH;
+  rect.w = SQUARELENGTH;
+  SDL_RenderCopy(renderer, texture, NULL, &rect);
 }
