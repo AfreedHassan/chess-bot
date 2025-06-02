@@ -1,0 +1,7 @@
+.*
+*.exe
+*.dll
+project.lua
+build/CMakeFiles/
+build/Makefile
+out/Debug/CMakeFiles/
