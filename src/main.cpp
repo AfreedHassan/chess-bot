@@ -4,11 +4,14 @@
 #include <SDL2/SDL_render.h>
 #include <SDL2/SDL_surface.h>
 #include <SDL2/SDL_video.h>
+#include <bitset>
 #include <cstddef>
 #include <filesystem>
 #include <iostream>
 #include <map>
 /*#include <process.h>*/
+
+#include "../includes/Board.h"
 
 struct RGB_COLOR_ {
   uint8_t r;
@@ -22,8 +25,8 @@ void drawBoard(SDL_Renderer *renderer);
 
 void drawPieces(SDL_Renderer *renderer);
 
-void drawPieceAtSquare(SDL_Renderer *renderer, std::string &&piece, char file,
-                       uint8_t rank);
+void drawPieceAtSquare(SDL_Renderer *renderer, std::string &&piece,
+                       uint8_t file, uint8_t rank);
 
 // Board constants
 const int ROWS = 8, COLS = 8, SQUARELENGTH = 80, SPACING = 0;
@@ -71,10 +74,37 @@ void Game() {
     }
   }
 }
-int main(int argc, char *args[]) {
-  Game();
-  return 0;
+
+void showBitboard(uint64_t bb) {
+  std::bitset<64> bits(bb);
+  for (int row = 7; row >= 0; row--) {
+    for (int col = 0; col < 8; col++) {
+      std::cout << bits[row * 8 + col] << ' ';
+    }
+    std::cout << " | " << row + 1;
+    std::cout << '\n';
+  }
+  std::cout << "- - - - - - - -\n";
+  std::cout << "a b c d e f g h\n";
 }
+
+void temp() {
+  uint64_t bb = 0b10000001ULL; // example bitboard (e.g., knight positions)
+  const uint64_t notAFile = 0xfe;
+  const uint64_t aFile = 0x0101010101010101;
+  const uint64_t hFile = 0x8080808080808080;
+  const uint64_t firstRank = 0x00000000000000FF;
+  const uint64_t a1toh8Diag = 0x8040201008040201;
+  const uint64_t h1toa8AntiDiag = 0x0102040810204080;
+  const uint64_t a1h8 =
+      0b1000000000000000000000000000000000000000000000000000000000000001ULL;
+
+  const uint64_t initialWhiteRooks = 0x0000000000000081;
+  showBitboard(initialWhiteRooks);
+}
+
+int main(int argc, char *args[]) { return 0; }
+
 void drawBoardFromImage(SDL_Renderer *renderer) {
   SDL_Texture *boardTexture = NULL;
   SDL_Surface *tmpSurface = IMG_Load("assets/chessboard.png");
@@ -123,48 +153,44 @@ void drawPieces(SDL_Renderer *renderer) {
       piecePaths[entry.path().filename()] = entry.path();
     }
   }
-  drawPieceAtSquare(renderer, "bR", 'a', 8);
-  drawPieceAtSquare(renderer, "bN", 'b', 8);
-  drawPieceAtSquare(renderer, "bB", 'c', 8);
-  drawPieceAtSquare(renderer, "bQ", 'd', 8);
-  drawPieceAtSquare(renderer, "bK", 'e', 8);
-  drawPieceAtSquare(renderer, "bB", 'f', 8);
-  drawPieceAtSquare(renderer, "bN", 'g', 8);
-  drawPieceAtSquare(renderer, "bR", 'h', 8);
-  for (char c = 'a'; c <= 'h'; ++c) {
-    drawPieceAtSquare(renderer, "bP", c, 7);
+  Board *board = new Board();
+  uint64_t x = board->getWhiteRooks();
+  while (x) {
+    int squareIndex = __builtin_ctzll(x); // Count trailing zeros
+    printf("Square Index : %d\n", squareIndex);
+    uint8_t fileIndex = squareIndex & 7;
+    uint8_t rankIndex = squareIndex >> 3;
+    printf("FileIndex: %d, RankIndex : %d\n", fileIndex, rankIndex);
+    drawPieceAtSquare(renderer, "wR", fileIndex, rankIndex);
+    x &= x - 1; // Clear the lowest set bit
   }
-  drawPieceAtSquare(renderer, "wR", 'a', 1);
-  drawPieceAtSquare(renderer, "wN", 'b', 1);
-  drawPieceAtSquare(renderer, "wB", 'c', 1);
-  drawPieceAtSquare(renderer, "wQ", 'd', 1);
-  drawPieceAtSquare(renderer, "wK", 'e', 1);
-  drawPieceAtSquare(renderer, "wB", 'f', 1);
-  drawPieceAtSquare(renderer, "wN", 'g', 1);
-  drawPieceAtSquare(renderer, "wR", 'h', 1);
-  for (char c = 'a'; c <= 'h'; ++c) {
-    drawPieceAtSquare(renderer, "wP", c, 2);
-  }
-  /*for (int row = 0; row < ROWS; row++) {*/
-  /*  for (int col = 0; col < COLS; col++) {*/
-  /*    SDL_Rect rect;*/
-  /*    rect.x = 10 + col * (SQUARELENGTH + SPACING);*/
-  /*    rect.y = 10 + row * (SQUARELENGTH + SPACING);*/
-  /*    rect.w = SQUARELENGTH;*/
-  /*    rect.h = SQUARELENGTH;*/
-  /*    SDL_Surface *surface = IMG_Load("assets/pieces/rl.png");*/
-  /*    SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer,
-   * surface);*/
-  /*    SDL_FreeSurface(surface);*/
-  /**/
-  /*    SDL_RenderCopy(renderer, texture, NULL, &rect);*/
-  /*  }*/
+
+  /*drawPieceAtSquare(renderer, "bR", 0, 7);*/
+  /*drawPieceAtSquare(renderer, "bN", 1, 7);*/
+  /*drawPieceAtSquare(renderer, "bB", 2, 7);*/
+  /*drawPieceAtSquare(renderer, "bQ", 3, 7);*/
+  /*drawPieceAtSquare(renderer, "bK", 4, 7);*/
+  /*drawPieceAtSquare(renderer, "bB", 5, 7);*/
+  /*drawPieceAtSquare(renderer, "bN", 6, 7);*/
+  /*drawPieceAtSquare(renderer, "bR", 7, 7);*/
+  /*for (short int file = 0; file < 8; file++) {*/
+  /*  drawPieceAtSquare(renderer, "bP", file, 6);*/
   /*}*/
-  /*SDL_RenderPresent(renderer);*/
+  /*drawPieceAtSquare(renderer, "wR", 0, 0);*/
+  /*drawPieceAtSquare(renderer, "wN", 1, 0);*/
+  /*drawPieceAtSquare(renderer, "wB", 2, 0);*/
+  /*drawPieceAtSquare(renderer, "wQ", 3, 0);*/
+  /*drawPieceAtSquare(renderer, "wK", 4, 0);*/
+  /*drawPieceAtSquare(renderer, "wB", 5, 0);*/
+  /*drawPieceAtSquare(renderer, "wN", 6, 0);*/
+  /*drawPieceAtSquare(renderer, "wR", 7, 0);*/
+  /*for (short int file = 0; file < 8; file++) {*/
+  /*  drawPieceAtSquare(renderer, "wP", file, 1);*/
+  /*}*/
 }
 
-void drawPieceAtSquare(SDL_Renderer *renderer, std::string &&piece, char file,
-                       uint8_t rank) {
+void drawPieceAtSquare(SDL_Renderer *renderer, std::string &&piece,
+                       uint8_t file, uint8_t rank) {
   // a8 is top left (closest to origin)
   /* a8 - - - - - - - - - h8
    * |                    |
@@ -175,9 +201,13 @@ void drawPieceAtSquare(SDL_Renderer *renderer, std::string &&piece, char file,
    * |                    |
    * a1  - - - - - - - -  h1
    */
-  uint8_t col = (file - 'a'), row = 8 - rank;
-  std::string imgPath = "assets/pieces/" + piece + ".svg";
-  SDL_Surface *surface = IMG_LoadSVG_RW(SDL_RWFromFile(imgPath.c_str(), "rb"));
+  uint8_t col = file, row = 7 - rank;
+  std::string imgPath = "assets/pieces/" + piece + ".png";
+  /*SDL_Surface *surface = IMG_LoadSVG_RW(SDL_RWFromFile(imgPath.c_str(),
+   * "rb"));*/
+
+  /*SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");*/
+  SDL_Surface *surface = IMG_Load(imgPath.c_str());
   SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, surface);
   SDL_FreeSurface(surface);
 
