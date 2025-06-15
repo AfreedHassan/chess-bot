@@ -44,7 +44,7 @@ BoardView::BoardView(Board *board)
   SDL_Event event;
   SDL_Texture *pieceTexture = nullptr;
   uint8_t rank = 255, file = 255;
-  bool run = 1;
+  bool run = 1, isPieceInHand = 0;
 
   while (run) {
     while (SDL_PollEvent(&event)) {
@@ -55,7 +55,8 @@ BoardView::BoardView(Board *board)
       if (event.type == SDL_MOUSEBUTTONUP) {
         SDL_Log("EVENT: LMB released. Piece dragging stopped.");
         pieceTexture = nullptr;
-        rank = 255, file = 255;
+        isPieceInHand = 0;
+
         if (!boardTexture_) {
           SDL_Log("boardTexture_ is null!");
         }
@@ -97,17 +98,20 @@ BoardView::BoardView(Board *board)
 
           SDL_Log("Piece being dragged.");
 
-          if (rank == 255 && file == 255)
+          // if !isPieceInHand: new piece being taken in hand.
+          if (!isPieceInHand) {
+            // get rank,file of new piece
             std::tie(rank, file) = this->getRankAndFileFromCoordinates(event.button.x, event.button.y);
-
-          this->clearSquare(rank, file);
-
-          if (!pieceTexture) {
+            // get texture of new piece
             Piece::PieceCode pc = board_->getPieceAt(rank, file);
             std::cout << "PieceCode: " << std::bitset<4>(pc) << '\n';
             pieceTexture = getPieceTexture(pc);
+
+            isPieceInHand = 1; // since new piece is now in hand.
           }
+          this->clearSquare(rank, file);
           SDL_RenderCopy(renderer_, pieceTexture, NULL, &pieceRect);
+
           /*printf("rank: %d, file: %d\n", rank, file);*/
           SDL_RenderPresent(renderer_);
         }
