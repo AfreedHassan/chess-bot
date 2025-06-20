@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.23)
 project(ChessGame)
 
-# NOTE: Folders here contain both SDL2 and SDL2_image files.
+# Folders here contain both SDL2 and SDL2_image files.
 if (WIN32)
   set(SDL2_LIB_DIR C:/Users/LENOVO/projects/cpp/SDL2-MinGw/SDL2-2.30.8/x86_64-w64-mingw32/lib)
   set(SDL2_INCLUDE_DIR C:/Users/LENOVO/projects/cpp/SDL2-MinGw/SDL2-2.30.8/x86_64-w64-mingw32/include)
@@ -27,7 +27,7 @@ include_directories(
 link_directories( ${SDL2_LIB_DIR} ${SDL2IMAGE_LIB_DIR})
 
 # INCLUDE FILES THAT SHOULD BE COMPILED:
-file(GLOB_RECURSE SRC "src/*.cpp" "src/*.h")
+file(GLOB_RECURSE SRC "src/*.cpp" "includes/*.h")
 
 message(STATUS "Add source files:")
 foreach(SRC_FILE IN LISTS SRC)

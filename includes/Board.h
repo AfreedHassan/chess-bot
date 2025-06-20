@@ -1,6 +1,7 @@
 #ifndef BOARD_H
 #define BOARD_H
 
+#include "Move.h"
 #include "Piece.h"
 #include <cstdint>
 #include <string>
@@ -33,6 +34,7 @@ public:
     nWhiteKing,   // 1100 (12)
     nBlackKing    // 1101 (13)
   }; */
+
   uint64_t getPieceSet(PieceType &&pt) const;
   uint64_t getPieceSet(PieceCode &pt) const;
   uint64_t getPieceSet(uint8_t &pt) const;
@@ -59,10 +61,12 @@ public:
   void setOccupied();
   void setEmpty();
   void showOccupied() const;
-  void showBitboard(uint64_t bb) const;
 
   PieceCode getPieceAt(uint8_t file, uint8_t rank);
+  PieceCode getPieceAt(uint8_t squareIndex);
   PieceCode getPieceCode(PieceType pt) const;
+
+  void makeMove(Move *move);
 
   Board();
 };
