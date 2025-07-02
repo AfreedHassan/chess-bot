@@ -94,15 +94,11 @@ soWeWe -10   |     |   -6  soEaEa
    *
    */
 void initKnightAttacks();
-uint64_t getKnightAttacks(uint64_t bb);
+uint64_t calculateKnightAttacks(uint64_t bb);
 uint64_t knightFill(uint64_t knights);
 uint64_t forkTargetSquare(uint64_t targets);
 
-// king stuff
-uint64_t getKingAttacks(uint64_t kingSet);
-void initKingAttacks();
-
-// sliding pieces (rook, bishop) stuff.
+// calc sliding pieces (rook, bishop) stuff.
 inline constexpr uint8_t RookNumBitsOccupancyMask[64] = {
     12, 11, 11, 11, 11, 11, 11, 12,
     11, 10, 10, 10, 10, 10, 10, 11,
@@ -123,8 +119,22 @@ inline constexpr uint8_t BishopNumBitsOccupancyMask[64] = {
     5, 5, 5, 5, 5, 5, 5, 5,
     6, 5, 5, 5, 5, 5, 5, 6};
 
-void getRookOccMask(uint64_t bb);
-void getBishopOccMask(uint64_t bb);
+uint64_t calculateRookOccupancyMask(uint64_t bb);
+uint64_t calculateBishopOccupancyMask(uint64_t bb);
+
+struct SMagic {
+  uint64_t *ptr;
+  uint64_t mask;
+  uint64_t magic;
+  uint8_t shift;
+};
+
+inline SMagic bishopAttacks[64];
+inline SMagic rookAttacks[64];
+
+uint64_t getBishopAttacks(uint64_t occ, uint8_t sq);
+uint64_t getRookAttacks(uint64_t occ, uint8_t sq);
+
 } // namespace Bitboards
 
 #endif // BITBOARDS_H
